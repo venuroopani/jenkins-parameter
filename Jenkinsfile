@@ -21,8 +21,10 @@ node {
 
 pipeline {
     agent any;
-    parameters { choice(name: 'CHOICES', choices: choiceArray, description: 'Please Select One') }
-    parameters { choice(name: 'PARA', choices: paraArray, description: 'Please Select The APIGateWay') }
+    parameters {
+                choice(name: 'CHOICES', choices: choiceArray, description: 'Please Select One') 
+                choice(name: 'PARA', choices: paraArray, description: 'Please Select The APIGateWay')
+               }
     stages {
         stage('debug') {
             steps {
