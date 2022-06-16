@@ -1,0 +1,26 @@
+    def choiceArray = []
+node {
+    checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/jglick/simple-maven-project-with-tests.git']]])
+    sh """
+    find $WORKSPACE -not -path '*/.*' -type f -name '*' >file.txt
+    """
+    def folders = sh(returnStdout: true, script: "cat file.txt")
+    folders.split().each {
+        //condition to skip files if any
+        choiceArray << it
+    }
+}
+pipeline {
+    agent any;
+    parameters {
+                choice(name: 'CHOICE', choices: choiceArray, description: 'Please Select The FILE')
+               }
+    stages {
+        stage('debug') {
+            steps {
+                echo "Selected FILE is : ${params.CHOICE}"
+            }
+        }
+    }
+    
+}
