@@ -1,7 +1,7 @@
 def choiceArray = []
 node {
     checkout scm
-    def folders = sh(returnStdout: true, script: "ls -R $WORKSPACE")
+    def folders = sh(returnStdout: true, script: "find /var/lib/jenkins -not -path x27*/.*x27 -type f -name x27*x27")
     
     folders.split().each {
         //condition to skip files if any
