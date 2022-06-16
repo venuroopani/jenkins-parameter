@@ -1,7 +1,7 @@
 def choiceArray = []
 node {
     checkout scm
-    def folders = sh(returnStdout: true, script: "find . -not -path x27*/.*x27 -type f -name x27*x27")
+    def folders = sh(returnStdout: true, script: "find . -not -path '*/.*' -type f -name '*'")
     
     folders.split().each {
         //condition to skip files if any
