@@ -1,0 +1,42 @@
+    def choiceArray = []
+node {
+    checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/venuroopani/jenkins-parameter.git']]])
+    sh """
+    find $WORKSPACE -not -path '*/.*' -type f -name '*' >file.txt
+    """
+    def SWAGGER_FILES = sh(returnStdout: true, script: "cat file.txt")
+    SWAGGER_FILES.split().each {
+        //condition to skip something if any
+        choiceArray << it
+    }
+}
+pipeline {
+    agent any;
+    parameters {
+                choice(name: 'SWAGGER_JSON', choices: choiceArray, description: 'Please Select The swagger json file')
+               }
+    stages {
+		stage ('aws connect'){
+		steps {
+            withCredentials([[
+                $class: 'AmazonWebServicesCredentialsBinding',
+                credentialsId: "awscli",
+                accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+            ]]) {
+                // AWS Code
+                sh """
+                aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+				aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+				aws configure set default.region us-east-2
+				aws sts get-caller-identity
+				aws apigateway get-rest-apis
+				aws apigateway put-rest-api --rest-api-id ${params.API_ID} --mode overwrite --body 'fileb://${params.SWAGGER_JSON}'
+				echo `git log -1 --pretty=%h ${params.SWAGGER_JSON}`
+				aws apigateway create-deployment --rest-api-id ${params.API_ID} --stage-name ${params.ENV_NAME} --description "'`git log -1 --pretty=%h ${params.SWAGGER_JSON}`'"
+				"""
+            }
+        }
+    }
+	}
+	}
